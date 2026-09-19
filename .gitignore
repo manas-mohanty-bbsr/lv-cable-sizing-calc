@@ -13,3 +13,4 @@ output/
 !samples/*.pdf
 !samples/*.xlsx
 ~$*
+CLAUDE.md
