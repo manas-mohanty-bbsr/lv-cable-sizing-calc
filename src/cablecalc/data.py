@@ -1,4 +1,9 @@
-"""Per-standard lookup tables. Exact match only; every row must name its source."""
+"""Per-standard lookup tables. Every row must name its source.
+
+Sizes, impedances and k factors are exact match only. Ambient temperature and number of
+grouped circuits take the next higher tabulated row (the more severe case) and say so in
+the returned source. Nothing is ever interpolated.
+"""
 from __future__ import annotations
 
 import csv
@@ -63,13 +68,43 @@ class CodeData:
                        method=method, cores=cores, size_mm2=float(size_mm2))
         return r["amps"], r["source"]
 
+    def _find_or_next_higher(self, name: str, var: str, value, **key):
+        """Exact row, else the row with the next higher `var` (the more severe case).
+
+        Never interpolates. Returns (row, used_value); used_value is None on an exact match.
+        A value above the highest tabulated one is refused.
+        """
+        shown = ", ".join(f"{k}={v}" for k, v in key.items())
+        rows = [r for r in self.tables[name] if all(r[k] == v for k, v in key.items())]
+        if not rows:
+            raise DataError(f"{self.code} {name}: no rows for {shown}")
+        for r in rows:
+            if r[var] == value:
+                return r, None
+        higher = [r for r in rows if r[var] > value]
+        if not higher:
+            top = max(r[var] for r in rows)
+            raise DataError(f"{self.code} {name}: {var}={value:g} for {shown} is above "
+                            f"the highest tabulated value {top:g}")
+        r = min(higher, key=lambda row: row[var])
+        return r, r[var]
+
     def temp_factor(self, insulation, ambient_c):
-        r = self._find("temp_factor", insulation=insulation, ambient_c=float(ambient_c))
-        return r["factor"], r["source"]
+        ambient_c = float(ambient_c)
+        r, used = self._find_or_next_higher("temp_factor", "ambient_c", ambient_c,
+                                            insulation=insulation)
+        if used is None:
+            return r["factor"], r["source"]
+        return r["factor"], (f"{r['source']} ({ambient_c:g} deg C taken as {used:g} deg C, "
+                             f"next higher tabulated value)")
 
     def group_factor(self, method, circuits):
-        r = self._find("group_factor", method=method, circuits=int(circuits))
-        return r["factor"], r["source"]
+        circuits = int(circuits)
+        r, used = self._find_or_next_higher("group_factor", "circuits", circuits, method=method)
+        if used is None:
+            return r["factor"], r["source"]
+        return r["factor"], (f"{r['source']} ({circuits} circuits taken as {used}, "
+                             f"next higher tabulated value)")
 
     def impedance(self, conductor, insulation, size_mm2):
         r = self._find("impedance", conductor=conductor, insulation=insulation,
