@@ -4,6 +4,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Cm
 
 from . import __version__
 from .io_excel import Project
@@ -37,44 +40,100 @@ LIMITATIONS = (
 )
 
 
-def _table(doc, rows):
+CODE_TITLES = {
+    "IEC": "IEC 60364-5-52:2009 (values as reproduced in IS 732:2019)",
+    "IS": "IS 732:2019",
+}
+
+LABEL_WIDTH, VALUE_WIDTH = Cm(3.5), Cm(12.5)
+
+
+def _table(doc, rows, widths=None):
     t = doc.add_table(rows=0, cols=len(rows[0]))
     t.style = "Table Grid"
+    if widths:
+        t.autofit = False
     for row in rows:
         cells = t.add_row().cells
-        for c, v in zip(cells, row):
+        for i, (c, v) in enumerate(zip(cells, row)):
             c.text = str(v)
+            if widths:
+                c.width = widths[i]
     return t
+
+
+def _num(x):
+    """Two decimal places, trailing zeros dropped: 50 -> 50, 13.75 -> 13.75, 0.03399 -> 0.03."""
+    return f"{x:.2f}".rstrip("0").rstrip(".")
+
+
+def _keep_together(table):
+    """Stop a table splitting across a page break."""
+    rows = table.rows
+    for i, row in enumerate(rows):
+        tr_pr = row._tr.get_or_add_trPr()
+        cant = OxmlElement("w:cantSplit")
+        tr_pr.append(cant)
+        if i < len(rows) - 1:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    para.paragraph_format.keep_with_next = True
+
+
+def _field(run, instr):
+    for kind, text in (("begin", None), (None, instr), ("separate", None), ("end", None)):
+        if kind:
+            el = OxmlElement("w:fldChar")
+            el.set(qn("w:fldCharType"), kind)
+        else:
+            el = OxmlElement("w:instrText")
+            el.set(qn("xml:space"), "preserve")
+            el.text = text
+        run._r.append(el)
+
+
+def _page_numbers(doc):
+    para = doc.sections[0].footer.paragraphs[0]
+    para.add_run("Page ")
+    _field(para.add_run(), "PAGE")
+    para.add_run(" of ")
+    _field(para.add_run(), "NUMPAGES")
 
 
 def write_report(path: Path, project: Project, results: list[SizingResult], today: str) -> None:
     doc = Document()
     doc.add_heading("LV Cable Sizing Calculation", level=0)
-    _table(doc, [("Project", project.name), ("Date", today), ("Code", project.code),
+    _page_numbers(doc)
+    _table(doc, [("Project", project.name), ("Date", today),
+                 ("Code", CODE_TITLES.get(project.code, project.code)),
                  ("Tool version", f"cablecalc {__version__}"),
-                 ("Prepared by", project.prepared_by)])
-    doc.add_paragraph(f"Code: {project.code}")
+                 ("Prepared by", project.prepared_by)], widths=(LABEL_WIDTH, VALUE_WIDTH))
     doc.add_paragraph("Checked by: ____________________")
 
     for res in results:
         doc.add_heading(f"Cable {res.tag}", level=1)
-        doc.add_paragraph(res.message)
+        doc.add_paragraph(res.message).paragraph_format.keep_with_next = True
         for c in res.checks:
             doc.add_heading(CHECK_LABELS[c.name], level=2)
-            _table(doc, [
+            t = _table(doc, [
                 ("Formula", c.formula),
                 ("Values", c.detail),
-                ("Required", f"{c.required:.4g} {c.unit}"),
-                ("Actual", f"{c.actual:.4g} {c.unit}"),
+                ("Required", f"{_num(c.required)} {c.unit}"),
+                ("Actual", f"{_num(c.actual)} {c.unit}"),
                 ("Result", "PASS" if c.passed else "FAIL"),
-                ("Sources", "; ".join(c.sources)),
-            ])
+                ("Sources", "\n".join(c.sources)),
+            ], widths=(LABEL_WIDTH, VALUE_WIDTH))
+            _keep_together(t)
 
     doc.add_heading("Summary", level=1)
-    _table(doc, [("Cable", "Size (mm2)", "Governing check", "Result")] + [
+    summary = _table(doc, [("Cable", "Size (mm2)", "Governing check", "Result")] + [
         (r.tag, f"{r.size_mm2:g}" if r.size_mm2 else "-",
          CHECK_LABELS[r.governing] if r.governing else "-",
          "PASS" if r.passed else "FAIL") for r in results])
+    _keep_together(summary)
+    for cell in summary.rows[-1].cells:  # keep the governing note on the table's page
+        for para in cell.paragraphs:
+            para.paragraph_format.keep_with_next = True
     doc.add_paragraph(GOVERNING_NOTE)
 
     doc.add_heading("Limitations", level=1)
