@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 
 from .data import CodeData
-from .models import CableInput, CheckResult
+from .models import CableInput, CheckResult, SizingResult, validate_input
 
 
 def check_current(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResult:
@@ -43,3 +43,23 @@ def check_short_circuit(inp: CableInput, size_mm2: float, data: CodeData) -> Che
         unit="mm2", higher_is_better=True, formula="S >= I x sqrt(t) / k",
         sources=(src,),
         detail=f"I = {inp.fault_current_ka:g} kA, t = {inp.fault_time_s:g} s, k = {k:g}")
+
+
+def governing_check(checks: tuple[CheckResult, ...]) -> str:
+    return min(checks, key=lambda c: c.margin).name
+
+
+def size_cable(inp: CableInput, data: CodeData) -> SizingResult:
+    validate_input(inp)
+    sizes = data.sizes(inp.conductor, inp.insulation, inp.method, inp.cores)
+    checks: tuple[CheckResult, ...] = ()
+    for size in sizes:
+        checks = (check_current(inp, size, data),
+                  check_voltage_drop(inp, size, data),
+                  check_short_circuit(inp, size, data))
+        if all(c.passed for c in checks):
+            return SizingResult(inp.tag, data.code, size, checks, governing_check(checks),
+                                True, f"{size:g} mm2 passes all checks")
+    return SizingResult(inp.tag, data.code, None, checks, None, False,
+                        f"No size passes. Results shown are for the largest size in the table "
+                        f"({sizes[-1]:g} mm2).")
