@@ -64,3 +64,8 @@ def test_summary_and_limitations(tmp_path, fixture_data):
 
 def test_no_banned_characters(tmp_path, fixture_data):
     assert not BANNED.search(build(tmp_path, fixture_data))
+
+
+def test_governing_check_is_defined_in_the_report(tmp_path, fixture_data):
+    from cablecalc.report import GOVERNING_NOTE
+    assert GOVERNING_NOTE in build(tmp_path, fixture_data)

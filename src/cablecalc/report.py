@@ -15,6 +15,10 @@ CHECK_LABELS = {
     "short_circuit": "Short-circuit withstand",
 }
 
+GOVERNING_NOTE = ("Governing check: the check that the next smaller size fails (the one failing by the "
+                  "widest margin, if more than one does). A dash means the smallest size in the table "
+                  "already passes.")
+
 LIMITATIONS = (
     "Low-voltage cables up to 1.1 kV only.",
     "Only the installation methods and sizes present in the shipped tables are supported. An ambient "
@@ -65,6 +69,7 @@ def write_report(path: Path, project: Project, results: list[SizingResult], toda
         (r.tag, f"{r.size_mm2:g}" if r.size_mm2 else "-",
          CHECK_LABELS[r.governing] if r.governing else "-",
          "PASS" if r.passed else "FAIL") for r in results])
+    doc.add_paragraph(GOVERNING_NOTE)
 
     doc.add_heading("Limitations", level=1)
     for line in LIMITATIONS:

@@ -37,3 +37,25 @@ def test_single_phase_governed_by_short_circuit(fixture_data):
 def test_invalid_input_raises_before_calculating(fixture_data):
     with pytest.raises(InputError):
         size_cable(make(length_m=0), fixture_data)
+
+
+def test_governing_is_the_check_that_fails_one_size_down():
+    # Manas's case 1 (IEC): at 25 mm2 current has the smallest margin (1.32 vs SC 1.52),
+    # but 16 mm2 fails only on short circuit (16 < 16.50), so short circuit governs.
+    from cablecalc.codes import load_code
+    inp = make(tag="WE1", voltage_v=415, design_current_a=42, power_factor=0.85, length_m=65,
+               ambient_c=40, grouped_circuits=3, fault_current_ka=6, device_rating_a=50)
+    r = size_cable(inp, load_code("IEC"))
+    assert r.size_mm2 == 25 and r.governing == "short_circuit"
+
+
+def test_when_two_checks_fail_one_size_down_the_worse_one_governs(fixture_data):
+    # 4 mm2 fails current (margin 28.71/30 = 0.957) and SC (4/5.4996 = 0.727): SC is worse.
+    assert size_cable(make(), fixture_data).governing == "short_circuit"
+
+
+def test_smallest_tabulated_size_has_no_governing_check(fixture_data):
+    r = size_cable(make(design_current_a=10, ambient_c=30, length_m=10, fault_current_ka=0.5),
+                   fixture_data)
+    assert r.size_mm2 == 2.5 and r.governing is None
+    assert "smallest size in the table" in r.message
