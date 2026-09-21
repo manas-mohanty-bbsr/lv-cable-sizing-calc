@@ -26,7 +26,13 @@ LIMITATIONS = (
     "the next higher row, as stated in the Sources line; values are never interpolated.",
     "For buried cables (methods D1 and D2) the ambient temperature is the ground temperature, and "
     "grouping assumes the cables or ducts are touching.",
-    "Harmonic derating and protective device coordination are not calculated.",
+    "Group reduction factors assume a group of similar, equally loaded cables. Groups containing "
+    "different sizes are not covered; for those, IS 732 clause S-5.1 gives F = 1/sqrt(n).",
+    "Overload protection: condition (1) of IS 732 clause 4.4.4.1, Ib <= In <= Iz, is checked. Condition "
+    "(2), I2 <= 1.45 x Iz, is not calculated. It is met by a device whose conventional tripping current "
+    "I2 is not more than 1.45 x In, such as a circuit-breaker to IEC 60898-1; for any other device the "
+    "engineer must check condition (2).",
+    "Harmonic derating is not calculated.",
     "This is a sample tool, not a design service. Results must be checked by a qualified engineer.",
 )
 
