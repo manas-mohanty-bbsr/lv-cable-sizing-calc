@@ -1,0 +1,6 @@
+conductor,insulation,method,cores,size_mm2,amps,source
+Cu,PVC,C,3,2.5,25,TEST FIXTURE - not from any standard
+Cu,PVC,C,3,4,33,TEST FIXTURE - not from any standard
+Cu,PVC,C,3,6,43,TEST FIXTURE - not from any standard
+Cu,PVC,C,3,10,60,TEST FIXTURE - not from any standard
+Cu,PVC,C,3,16,80,TEST FIXTURE - not from any standard
