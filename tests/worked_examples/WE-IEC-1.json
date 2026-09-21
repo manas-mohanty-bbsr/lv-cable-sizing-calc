@@ -1,0 +1,14 @@
+{
+  "code": "IEC",
+  "description": "Motor feeder, 3-phase 415 V, 65 m, clipped to a wall with two other circuits",
+  "input": {"tag": "WE-IEC-1", "phase": "3ph", "voltage_v": 415, "design_current_a": 42,
+            "power_factor": 0.85, "length_m": 65, "conductor": "Cu", "insulation": "PVC",
+            "method": "C", "cores": 3, "ambient_c": 40, "grouped_circuits": 3,
+            "vd_limit_pct": 5, "fault_current_ka": 6, "fault_time_s": 0.1,
+            "device_rating_a": 50},
+  "expected": {"size_mm2": 25, "governing": "short_circuit", "iz_a": 65.98, "vd_pct": 0.92,
+               "smin_mm2": 16.50},
+  "tolerance_pct": 0.5,
+  "worked_by": "Hand calculation from IS 732:2019 Tables 23, 33, 36, 3 and Annex Y",
+  "checked_by": "Manas Mohanty, 21 Sep 2026"
+}

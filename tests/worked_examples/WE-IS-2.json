@@ -1,0 +1,14 @@
+{
+  "code": "IS",
+  "description": "Feeder to an outbuilding, 3-phase 415 V, 120 m, direct in the ground touching two other circuits",
+  "input": {"tag": "WE-IS-2", "phase": "3ph", "voltage_v": 415, "design_current_a": 95,
+            "power_factor": 0.8, "length_m": 120, "conductor": "Cu", "insulation": "XLPE",
+            "method": "D2", "cores": 3, "ambient_c": 30, "soil_resistivity_kmw": 1.5,
+            "grouped_circuits": 3, "vd_limit_pct": 5, "fault_current_ka": 10,
+            "fault_time_s": 0.2, "device_rating_a": 100},
+  "expected": {"size_mm2": 50, "governing": "current", "iz_a": 118.39, "vd_pct": 1.94,
+               "smin_mm2": 31.27},
+  "tolerance_pct": 0.5,
+  "worked_by": "Hand calculation from IS 732:2019 Tables 24, 34, 35, 37, 3 and Annex Y",
+  "checked_by": "Manas Mohanty, 21 Sep 2026"
+}
