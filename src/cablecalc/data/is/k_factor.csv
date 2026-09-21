@@ -1,0 +1,5 @@
+conductor,insulation,k,source
+Cu,PVC,115,"IS 732:2019 Table 3, conductors up to 300 mm2"
+Cu,XLPE,143,"IS 732:2019 Table 3, conductors up to 300 mm2"
+Al,PVC,76,"IS 732:2019 Table 3, conductors up to 300 mm2"
+Al,XLPE,94,"IS 732:2019 Table 3, conductors up to 300 mm2"
