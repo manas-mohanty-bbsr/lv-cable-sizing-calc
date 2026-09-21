@@ -60,3 +60,9 @@ def test_bad_code_named(tmp_path):
 def test_empty_rows_skipped(tmp_path):
     _, cables = read_input(filled(tmp_path, [ROW, {}]))
     assert len(cables) == 1
+
+
+def test_soil_resistivity_optional_and_read(tmp_path):
+    _, cables = read_input(filled(tmp_path, [ROW, dict(ROW, tag="C2", soil_resistivity_kmw=1.5)]))
+    assert cables[0].soil_resistivity_kmw == 2.5
+    assert cables[1].soil_resistivity_kmw == 1.5

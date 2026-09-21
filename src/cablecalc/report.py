@@ -18,9 +18,11 @@ CHECK_LABELS = {
 LIMITATIONS = (
     "Low-voltage cables up to 1.1 kV only.",
     "Only the installation methods and sizes present in the shipped tables are supported. An ambient "
-    "temperature or number of grouped circuits between tabulated rows takes the next higher row, as "
-    "stated in the Sources line; values are never interpolated.",
-    "Harmonic derating, soil thermal resistivity corrections and protective device coordination are not calculated.",
+    "temperature, number of grouped circuits or soil thermal resistivity between tabulated rows takes "
+    "the next higher row, as stated in the Sources line; values are never interpolated.",
+    "For buried cables (methods D1 and D2) the ambient temperature is the ground temperature, and "
+    "grouping assumes the cables or ducts are touching.",
+    "Harmonic derating and protective device coordination are not calculated.",
     "This is a sample tool, not a design service. Results must be checked by a qualified engineer.",
 )
 

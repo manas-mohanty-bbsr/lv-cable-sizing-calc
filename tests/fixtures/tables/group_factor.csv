@@ -2,3 +2,5 @@ method,circuits,factor,source
 C,1,1.00,TEST FIXTURE - not from any standard
 C,2,0.80,TEST FIXTURE - not from any standard
 C,4,0.65,TEST FIXTURE - not from any standard
+D2,1,1.00,TEST FIXTURE - not from any standard
+D2,2,0.75,TEST FIXTURE - not from any standard

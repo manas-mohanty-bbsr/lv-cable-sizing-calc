@@ -84,3 +84,24 @@ def test_wrong_header_is_refused(tmp_path):
     (tmp_path / "k_factor.csv").write_text("a,b\n1,2\n", encoding="utf-8")
     with pytest.raises(DataError, match="k_factor.csv: expected columns"):
         load_code_data(tmp_path, "X")
+
+
+def test_ground_temperature_uses_the_ground_rows(fixture_data):
+    assert fixture_data.temp_factor("PVC", 30, medium="ground")[0] == 0.89
+    assert fixture_data.temp_factor("PVC", 30)[0] == 1.00  # air is the default
+
+
+def test_soil_factor_exact_and_default(fixture_data):
+    factor, src = fixture_data.soil_factor("D2", 2.5)
+    assert factor == 1.00 and "taken as" not in src
+
+
+def test_soil_between_rows_takes_the_higher_resistivity(fixture_data):
+    factor, src = fixture_data.soil_factor("D2", 2)
+    assert factor == 1.00
+    assert "(2 K.m/W taken as 2.5 K.m/W, next higher tabulated value)" in src
+
+
+def test_soil_above_table_is_refused(fixture_data):
+    with pytest.raises(DataError, match="above the highest tabulated value 3"):
+        fixture_data.soil_factor("D2", 3.5)

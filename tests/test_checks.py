@@ -46,3 +46,23 @@ def test_short_circuit(fixture_data):
     c5 = check_short_circuit(make(), 4, fixture_data)
     assert c5.required == pytest.approx(5.4996, rel=1e-3) and not c5.passed
     assert check_short_circuit(make(), 6, fixture_data).passed
+
+
+def test_buried_cable_uses_ground_temperature_and_soil(fixture_data):
+    inp = make(method="D2", ambient_c=30, soil_resistivity_kmw=1)
+    # Iz = 50 x 0.89 (ground 30 C) x 1.50 (soil 1 K.m/W) x 1.00 = 66.75 A
+    c = check_current(inp, 6, fixture_data)
+    assert c.actual == pytest.approx(66.75)
+    assert "Cs" in c.formula and "Cs = 1.5" in c.detail
+    assert len(c.sources) == 4
+
+
+def test_buried_grouping_says_touching_is_assumed(fixture_data):
+    c = check_current(make(method="D2", ambient_c=20, grouped_circuits=2), 6, fixture_data)
+    assert any("touching assumed" in s for s in c.sources)
+
+
+def test_cable_in_air_ignores_soil(fixture_data):
+    c = check_current(make(soil_resistivity_kmw=1), 6, fixture_data)
+    assert c.actual == pytest.approx(37.41) and len(c.sources) == 3
+    assert "Cs" not in c.formula
