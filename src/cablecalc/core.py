@@ -13,6 +13,8 @@ BURIED_METHODS = ("D1", "D2")
 def check_current(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResult:
     it, s1 = data.ampacity(inp.conductor, inp.insulation, inp.method, inp.cores, size_mm2)
     required = max(inp.design_current_a, inp.device_rating_a or 0)
+    device = f"{inp.device_rating_a:g} A" if inp.device_rating_a else "none"
+    loads = f"Ib = {inp.design_current_a:.2f} A, In = {device}, "
     if inp.method not in BURIED_METHODS:
         ca, s2 = data.temp_factor(inp.insulation, inp.ambient_c)
         cg, s3 = data.group_factor(inp.method, inp.grouped_circuits)
@@ -21,7 +23,7 @@ def check_current(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResu
             name="current", passed=iz >= required, required=required, actual=iz, unit="A",
             higher_is_better=True, formula="Iz = It x Ca x Cg >= max(Ib, In)",
             sources=(s1, s2, s3),
-            detail=f"It = {it:g} A, Ca = {ca:g}, Cg = {cg:g}, Iz = {iz:.2f} A")
+            detail=loads + f"It = {it:g} A, Ca = {ca:g}, Cg = {cg:g}, Iz = {iz:.2f} A")
     # Buried: ambient is the ground temperature, soil resistivity applies, and grouping
     # assumes the cables or ducts are touching (the worst case).
     ca, s2 = data.temp_factor(inp.insulation, inp.ambient_c, medium="ground")
@@ -33,7 +35,7 @@ def check_current(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResu
         name="current", passed=iz >= required, required=required, actual=iz, unit="A",
         higher_is_better=True, formula="Iz = It x Ca x Cs x Cg >= max(Ib, In)",
         sources=(s1, s2, s3, s4),
-        detail=f"It = {it:g} A, Ca = {ca:g} (ground), Cs = {cs:g}, Cg = {cg:g}, Iz = {iz:.2f} A")
+        detail=loads + f"It = {it:g} A, Ca = {ca:g} (ground), Cs = {cs:g}, Cg = {cg:g}, Iz = {iz:.2f} A")
 
 
 def check_voltage_drop(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResult:

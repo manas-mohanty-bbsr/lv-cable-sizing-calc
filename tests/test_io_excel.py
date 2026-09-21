@@ -1,6 +1,6 @@
 import pytest
 from openpyxl import load_workbook
-from cablecalc.io_excel import COLUMNS, Project, read_input, write_template
+from cablecalc.io_excel import COLUMNS, GUIDE, Project, read_input, write_template
 from cablecalc.models import InputError
 
 ROW = {"tag": "C1", "phase": "3ph", "voltage_v": 400, "design_current_a": 30, "load_kw": None,
@@ -28,7 +28,7 @@ def test_template_has_both_sheets_and_header(tmp_path):
     p = tmp_path / "t.xlsx"
     write_template(p)
     wb = load_workbook(p)
-    assert wb.sheetnames == ["Project", "Cables"]
+    assert wb.sheetnames == ["Project", "Cables", "Guide"]
     assert tuple(c.value for c in wb["Cables"][1]) == COLUMNS
 
 
@@ -66,3 +66,11 @@ def test_soil_resistivity_optional_and_read(tmp_path):
     _, cables = read_input(filled(tmp_path, [ROW, dict(ROW, tag="C2", soil_resistivity_kmw=1.5)]))
     assert cables[0].soil_resistivity_kmw == 2.5
     assert cables[1].soil_resistivity_kmw == 1.5
+
+
+def test_guide_explains_every_column_in_order(tmp_path):
+    p = tmp_path / "t.xlsx"
+    write_template(p)
+    rows = list(load_workbook(p)["Guide"].iter_rows(min_row=2, values_only=True))
+    assert tuple(r[0] for r in rows) == COLUMNS == tuple(g[0] for g in GUIDE)
+    assert all(r[2] for r in rows)

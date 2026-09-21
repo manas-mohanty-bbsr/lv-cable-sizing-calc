@@ -28,8 +28,19 @@ def build(tmp_path, fixture_data):
 
 def test_cover_and_blank_checker(tmp_path, fixture_data):
     t = build(tmp_path, fixture_data)
-    assert "Sample Plant" in t and "2026-09-19" in t and "Code: FIXTURE" in t
+    assert "Sample Plant" in t and "2026-09-19" in t and "FIXTURE" in t
     assert "Checked by: ____________________" in t
+
+
+def test_code_named_in_full_and_pages_numbered(tmp_path, fixture_data):
+    from cablecalc.report import CODE_TITLES
+    p = tmp_path / "r.docx"
+    write_report(p, Project("Sample Plant", "IS", "M. Mohanty"),
+                 [size_cable(make(), fixture_data)], today="2026-09-21")
+    d = Document(p)
+    assert CODE_TITLES["IS"] in all_text(p)
+    footer_xml = d.sections[0].footer._element.xml
+    assert "PAGE" in footer_xml and "NUMPAGES" in footer_xml
 
 
 def test_every_check_with_formula_and_result(tmp_path, fixture_data):

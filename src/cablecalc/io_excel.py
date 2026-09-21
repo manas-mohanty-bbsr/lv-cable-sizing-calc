@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 
 from .codes import SUPPORTED_CODES
 from .models import CableInput, InputError, design_current_from_kw, validate_input
@@ -25,14 +27,65 @@ class Project:
     prepared_by: str
 
 
+METHODS = ("A1", "A2", "B1", "B2", "C", "E", "D1", "D2")
+
+# (column, unit, what to enter) - written to the Guide sheet of the template
+GUIDE = (
+    ("tag", "-", "Cable reference, e.g. F-01. Required."),
+    ("phase", "-", "1ph or 3ph."),
+    ("voltage_v", "V", "Line voltage for 3ph (e.g. 415), phase voltage for 1ph (e.g. 230)."),
+    ("design_current_a", "A", "Design current Ib. Leave blank to calculate it from load_kw."),
+    ("load_kw", "kW", "Used only when design_current_a is blank."),
+    ("power_factor", "-", "Between 0 and 1, e.g. 0.85."),
+    ("length_m", "m", "Route length, one way."),
+    ("conductor", "-", "Cu or Al."),
+    ("insulation", "-", "PVC or XLPE."),
+    ("method", "-", "Installation method: " + ", ".join(METHODS) + ". D1 = in buried ducts, "
+     "D2 = direct in the ground."),
+    ("cores", "-", "LOADED conductors: 2 for 1ph, 3 for 3ph (a 4-core 3ph cable is entered as 3)."),
+    ("ambient_c", "deg C", "Air temperature; for D1 and D2 the ground temperature. Between table rows, "
+     "the next higher row is used."),
+    ("grouped_circuits", "-", "Number of circuits in the group, including this one. 1 if alone."),
+    ("vd_limit_pct", "%", "Permitted voltage drop, e.g. 5."),
+    ("fault_current_ka", "kA", "Prospective fault current at the cable."),
+    ("fault_time_s", "s", "Disconnection time of the protective device for that fault."),
+    ("device_rating_a", "A", "Rating In of the overload device. Leave blank if there is none."),
+    ("soil_resistivity_kmw", "K.m/W", "D1 and D2 only. Leave blank for 2.5."),
+)
+
+
+def _dropdown(ws, choices, cells):
+    dv = DataValidation(type="list", formula1='"' + ",".join(choices) + '"')
+    ws.add_data_validation(dv)
+    dv.add(cells)
+
+
 def write_template(path: Path) -> None:
     wb = Workbook()
     ws = wb.active
     ws.title = "Project"
     for r, label in enumerate(("Project name", "Code (IEC or IS)", "Prepared by"), start=1):
         ws.cell(r, 1, label)
+    ws.column_dimensions["A"].width = 20
+    ws.column_dimensions["B"].width = 40
+    _dropdown(ws, SUPPORTED_CODES, "B2")
+
     cables = wb.create_sheet("Cables")
     cables.append(list(COLUMNS))
+    for i, col in enumerate(COLUMNS, start=1):
+        cables.column_dimensions[get_column_letter(i)].width = max(10, len(col) + 2)
+    for col, choices in (("phase", ("1ph", "3ph")), ("conductor", ("Cu", "Al")),
+                         ("insulation", ("PVC", "XLPE")), ("method", METHODS)):
+        letter = get_column_letter(COLUMNS.index(col) + 1)
+        _dropdown(cables, choices, f"{letter}2:{letter}500")
+
+    guide = wb.create_sheet("Guide")
+    guide.append(["Column", "Unit", "What to enter"])
+    for row in GUIDE:
+        guide.append(list(row))
+    guide.column_dimensions["A"].width = 22
+    guide.column_dimensions["B"].width = 8
+    guide.column_dimensions["C"].width = 100
     wb.save(path)
 
 
