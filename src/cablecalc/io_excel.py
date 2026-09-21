@@ -12,10 +12,10 @@ from .models import CableInput, InputError, design_current_from_kw, validate_inp
 COLUMNS = ("tag", "phase", "voltage_v", "design_current_a", "load_kw", "power_factor",
            "length_m", "conductor", "insulation", "method", "cores", "ambient_c",
            "grouped_circuits", "vd_limit_pct", "fault_current_ka", "fault_time_s",
-           "device_rating_a")
+           "device_rating_a", "soil_resistivity_kmw")
 _TEXT = {"tag", "phase", "conductor", "insulation", "method"}
 _INT = {"cores", "grouped_circuits"}
-_OPTIONAL = {"design_current_a", "load_kw", "device_rating_a"}
+_OPTIONAL = {"design_current_a", "load_kw", "device_rating_a", "soil_resistivity_kmw"}
 
 
 @dataclass(frozen=True)
@@ -80,6 +80,8 @@ def read_input(path: Path) -> tuple[Project, list[CableInput]]:
         if any(row[c] is None for c in COLUMNS if c not in _OPTIONAL):
             continue
         row.pop("load_kw")
+        if row["soil_resistivity_kmw"] is None:
+            row.pop("soil_resistivity_kmw")
         inp = CableInput(**row)
         try:
             validate_input(inp)

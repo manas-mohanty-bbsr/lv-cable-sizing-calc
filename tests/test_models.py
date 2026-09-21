@@ -55,3 +55,12 @@ def test_margin_higher_is_better():
 def test_margin_lower_is_better():
     c = CheckResult("voltage_drop", True, 5.0, 2.0, "%", False, "", (), "")
     assert c.margin == pytest.approx(2.5)
+
+
+def test_soil_resistivity_defaults_to_the_table_reference():
+    assert make().soil_resistivity_kmw == 2.5
+
+
+def test_soil_resistivity_must_be_positive():
+    with pytest.raises(InputError, match="soil_resistivity_kmw"):
+        validate_input(make(soil_resistivity_kmw=0))

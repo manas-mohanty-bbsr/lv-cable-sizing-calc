@@ -1,7 +1,7 @@
 """Per-standard lookup tables. Every row must name its source.
 
-Sizes, impedances and k factors are exact match only. Ambient temperature and number of
-grouped circuits take the next higher tabulated row (the more severe case) and say so in
+Sizes, impedances and k factors are exact match only. Ambient temperature, number of
+grouped circuits and soil thermal resistivity take the next higher tabulated row (the more severe case) and say so in
 the returned source. Nothing is ever interpolated.
 """
 from __future__ import annotations
@@ -18,8 +18,10 @@ class DataError(ValueError):
 _SPEC = {
     "ampacity": (("conductor", "insulation", "method", "cores", "size_mm2", "amps", "source"),
                  {"cores": int, "size_mm2": float, "amps": float}),
-    "temp_factor": (("insulation", "ambient_c", "factor", "source"),
+    "temp_factor": (("insulation", "medium", "ambient_c", "factor", "source"),
                     {"ambient_c": float, "factor": float}),
+    "soil_factor": (("method", "resistivity_kmw", "factor", "source"),
+                    {"resistivity_kmw": float, "factor": float}),
     "group_factor": (("method", "circuits", "factor", "source"),
                      {"circuits": int, "factor": float}),
     "impedance": (("conductor", "insulation", "size_mm2", "r_ohm_per_km", "x_ohm_per_km", "source"),
@@ -89,10 +91,10 @@ class CodeData:
         r = min(higher, key=lambda row: row[var])
         return r, r[var]
 
-    def temp_factor(self, insulation, ambient_c):
+    def temp_factor(self, insulation, ambient_c, medium="air"):
         ambient_c = float(ambient_c)
         r, used = self._find_or_next_higher("temp_factor", "ambient_c", ambient_c,
-                                            insulation=insulation)
+                                            insulation=insulation, medium=medium)
         if used is None:
             return r["factor"], r["source"]
         return r["factor"], (f"{r['source']} ({ambient_c:g} deg C taken as {used:g} deg C, "
@@ -104,6 +106,15 @@ class CodeData:
         if used is None:
             return r["factor"], r["source"]
         return r["factor"], (f"{r['source']} ({circuits} circuits taken as {used}, "
+                             f"next higher tabulated value)")
+
+    def soil_factor(self, method, resistivity_kmw):
+        resistivity_kmw = float(resistivity_kmw)
+        r, used = self._find_or_next_higher("soil_factor", "resistivity_kmw", resistivity_kmw,
+                                            method=method)
+        if used is None:
+            return r["factor"], r["source"]
+        return r["factor"], (f"{r['source']} ({resistivity_kmw:g} K.m/W taken as {used:g} K.m/W, "
                              f"next higher tabulated value)")
 
     def impedance(self, conductor, insulation, size_mm2):

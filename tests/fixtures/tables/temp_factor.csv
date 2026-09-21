@@ -1,3 +1,5 @@
-insulation,ambient_c,factor,source
-PVC,30,1.00,TEST FIXTURE - not from any standard
-PVC,40,0.87,TEST FIXTURE - not from any standard
+insulation,medium,ambient_c,factor,source
+PVC,air,30,1.00,TEST FIXTURE - not from any standard
+PVC,air,40,0.87,TEST FIXTURE - not from any standard
+PVC,ground,20,1.00,TEST FIXTURE - not from any standard
+PVC,ground,30,0.89,TEST FIXTURE - not from any standard

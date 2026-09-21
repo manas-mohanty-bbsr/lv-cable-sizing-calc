@@ -29,6 +29,7 @@ class CableInput:
     fault_current_ka: float
     fault_time_s: float
     device_rating_a: float | None = None
+    soil_resistivity_kmw: float = 2.5
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,8 @@ def validate_input(inp: CableInput) -> None:
         bad("grouped_circuits", "must be 1 or more")
     if inp.cores < 1:
         bad("cores", "must be 1 or more")
+    if not inp.soil_resistivity_kmw > 0:
+        bad("soil_resistivity_kmw", "must be greater than 0")
     if inp.device_rating_a is not None and inp.device_rating_a <= 0:
         bad("device_rating_a", "must be greater than 0")
     if p:

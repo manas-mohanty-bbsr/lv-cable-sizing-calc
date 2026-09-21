@@ -1,0 +1,5 @@
+conductor,insulation,k,source
+Cu,PVC,115,"IEC 60364-4-43:2008 k values, as reproduced in IS 732:2019 Table 3, conductors up to 300 mm2"
+Cu,XLPE,143,"IEC 60364-4-43:2008 k values, as reproduced in IS 732:2019 Table 3, conductors up to 300 mm2"
+Al,PVC,76,"IEC 60364-4-43:2008 k values, as reproduced in IS 732:2019 Table 3, conductors up to 300 mm2"
+Al,XLPE,94,"IEC 60364-4-43:2008 k values, as reproduced in IS 732:2019 Table 3, conductors up to 300 mm2"
