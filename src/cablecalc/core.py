@@ -61,8 +61,9 @@ def check_short_circuit(inp: CableInput, size_mm2: float, data: CodeData) -> Che
         detail=f"I = {inp.fault_current_ka:g} kA, t = {inp.fault_time_s:g} s, k = {k:g}")
 
 
-def governing_check(checks: tuple[CheckResult, ...]) -> str:
-    return min(checks, key=lambda c: c.margin).name
+def governing_check(smaller: tuple[CheckResult, ...]) -> str:
+    """The check that rules out the next smaller size; if several do, the one failing worst."""
+    return min((c for c in smaller if not c.passed), key=lambda c: c.margin).name
 
 
 def size_cable(inp: CableInput, data: CodeData) -> SizingResult:
@@ -70,11 +71,15 @@ def size_cable(inp: CableInput, data: CodeData) -> SizingResult:
     sizes = data.sizes(inp.conductor, inp.insulation, inp.method, inp.cores)
     checks: tuple[CheckResult, ...] = ()
     for size in sizes:
+        smaller = checks
         checks = (check_current(inp, size, data),
                   check_voltage_drop(inp, size, data),
                   check_short_circuit(inp, size, data))
         if all(c.passed for c in checks):
-            return SizingResult(inp.tag, data.code, size, checks, governing_check(checks),
+            if not smaller:
+                return SizingResult(inp.tag, data.code, size, checks, None, True,
+                                    f"{size:g} mm2 passes all checks; it is the smallest size in the table")
+            return SizingResult(inp.tag, data.code, size, checks, governing_check(smaller),
                                 True, f"{size:g} mm2 passes all checks")
     return SizingResult(inp.tag, data.code, None, checks, None, False,
                         f"No size passes. Results shown are for the largest size in the table "
