@@ -17,4 +17,9 @@ each of them governs at least one case.
 
 ## Statement
 
-🔲 CONFIRM: statement by Manas Mohanty, in his own words
+I ran the four worked examples through the tool myself on 22 September 2026. For every case the size,
+the governing check and each figure matched the hand calculation made to IS 732:2019, which I had
+reviewed and accepted. I find the tool useful where a design has many feeders to size, because each
+result can be checked line by line against the code.
+
+Manas Mohanty
