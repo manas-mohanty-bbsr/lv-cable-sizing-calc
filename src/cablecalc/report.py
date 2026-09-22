@@ -35,6 +35,13 @@ LIMITATIONS = (
     "(2), I2 <= 1.45 x Iz, is not calculated. It is met by a device whose conventional tripping current "
     "I2 is not more than 1.45 x In, such as a circuit-breaker to IEC 60898-1; for any other device the "
     "engineer must check condition (2).",
+    "Short-circuit withstand is checked as S >= I x sqrt(t) / k (IS 732 clause 4.4.5.5.2, equation 3). "
+    "The same clause requires k^2 x S^2 to exceed the let-through energy I^2t quoted by the device "
+    "manufacturer where the device operates in less than 0.1 s or is current-limiting. That check is "
+    "not calculated; the engineer must make it from the manufacturer's data.",
+    "The fault current and fault time entered must be the worst pair for a fault anywhere along the "
+    "cable (IS 732 clause 4.4.5.5.2). A fault at the far end is smaller but may take longer to clear, so "
+    "it can be the more onerous case. The tool checks only the pair entered.",
     "Harmonic derating is not calculated.",
     "This is a sample tool, not a design service. Results must be checked by a qualified engineer.",
 )

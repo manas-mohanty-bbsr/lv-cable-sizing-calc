@@ -40,8 +40,8 @@ GUIDE = (
     ("length_m", "m", "Route length, one way."),
     ("conductor", "-", "Cu or Al."),
     ("insulation", "-", "PVC or XLPE."),
-    ("method", "-", "Installation method: " + ", ".join(METHODS) + ". D1 = in buried ducts, "
-     "D2 = direct in the ground."),
+    ("method", "-", "Installation method: " + ", ".join(METHODS) + ". Each is described in the "
+     "Installation methods list below."),
     ("cores", "-", "LOADED conductors: 2 for 1ph, 3 for 3ph (a 4-core 3ph cable is entered as 3)."),
     ("ambient_c", "deg C", "Air temperature; for D1 and D2 the ground temperature. Between table rows, "
      "the next higher row is used."),
@@ -51,6 +51,30 @@ GUIDE = (
     ("fault_time_s", "s", "Disconnection time of the protective device for that fault."),
     ("device_rating_a", "A", "Rating In of the overload device. Leave blank if there is none."),
     ("soil_resistivity_kmw", "K.m/W", "D1 and D2 only. Leave blank for 2.5."),
+)
+
+# (method, where the cable runs and the grouping factors applied) - written below GUIDE.
+# From IS 732:2019 Table 19, Table 20 and clause S-6.1; grouping rows from Tables 36 to 38. The codes
+# mean the same in IEC 60364-5-52:2009 (Tables A.52.3 and B.52.1).
+METHOD_GUIDE = (
+    ("A1", "Single-core cables or insulated conductors in conduit in a thermally insulated wall. "
+     "Grouping: bunched or enclosed (Table 36 item 1)."),
+    ("A2", "Multi-core cable in conduit in a thermally insulated wall. "
+     "Grouping: bunched or enclosed (Table 36 item 1)."),
+    ("B1", "Single-core cables or insulated conductors in conduit or trunking on a wall, less than "
+     "0.3 x conduit diameter from it. Grouping: bunched or enclosed (Table 36 item 1)."),
+    ("B2", "Multi-core cable in conduit on a wall, less than 0.3 x conduit diameter from it. "
+     "Grouping: bunched or enclosed (Table 36 item 1)."),
+    ("C", "Single-core or multi-core cable fixed on a wall, less than 0.3 x cable diameter from it; "
+     "also used for cable on unperforated tray and cable direct in masonry. "
+     "Grouping: single layer on wall, floor or unperforated tray (Table 36 item 2)."),
+    ("E", "Multi-core cable in free air, at least 0.3 x cable diameter clear of any surface, for "
+     "example on perforated tray, brackets or ladder. "
+     "Grouping: single layer on perforated tray (Table 36 item 4)."),
+    ("D1", "Multi-core cable in ducts in the ground (reference: 100 mm duct, 0.7 m deep). "
+     "Grouping: ducts touching (Table 38)."),
+    ("D2", "Cable laid direct in the ground (reference: 0.7 m deep). "
+     "Grouping: cables touching (Table 37)."),
 )
 
 
@@ -79,14 +103,23 @@ def write_template(path: Path) -> None:
         letter = get_column_letter(COLUMNS.index(col) + 1)
         _dropdown(cables, choices, f"{letter}2:{letter}500")
 
+    write_guide(wb)
+    wb.save(path)
+
+
+def write_guide(wb: Workbook) -> None:
+    """Add the Guide sheet: every column, then every installation method."""
     guide = wb.create_sheet("Guide")
     guide.append(["Column", "Unit", "What to enter"])
     for row in GUIDE:
         guide.append(list(row))
+    guide.append([])
+    guide.append(["Installation methods", "", "Where the cable runs, and the grouping factors used"])
+    for method, text in METHOD_GUIDE:
+        guide.append([method, "", text])
     guide.column_dimensions["A"].width = 22
     guide.column_dimensions["B"].width = 8
     guide.column_dimensions["C"].width = 100
-    wb.save(path)
 
 
 def read_input(path: Path) -> tuple[Project, list[CableInput]]:
