@@ -72,9 +72,14 @@ pip install .
 - Overload protection: condition (1) of IS 732 clause 4.4.4.1 (Ib <= In <= Iz) is checked. Condition (2)
   (I2 <= 1.45 x Iz) is not calculated; it is met by a circuit-breaker to IEC 60898-1, and must be checked
   by the engineer for any other device.
+- Short-circuit withstand is checked as S >= I x sqrt(t) / k (IS 732 clause 4.4.5.5.2). For devices that
+  operate in under 0.1 s or are current-limiting, the same clause requires k^2 S^2 >= I^2t from the
+  manufacturer's data; that check is not calculated. The fault current and time entered must be the worst
+  pair for a fault anywhere along the cable.
+- Each cable is one run per phase: cables in parallel are not covered. The `cable` column takes
+  `2 x 1C`, `3 x 1C`, `4 x 1C`, `2C`, `3C`, `3.5C` or `4C`, and is checked against the phase and the
+  method. For 3.5C the size given is that of the phase conductors.
 - Harmonic derating is not calculated.
-- `cores` means loaded conductors: 2 for single-phase, 3 for three-phase (a 4-core three-phase cable is
-  entered as 3).
 
 This is a sample, not a design service. Results must be checked by a qualified engineer.
 

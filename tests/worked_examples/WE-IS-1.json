@@ -3,7 +3,7 @@
   "description": "Lighting circuit, single-phase 230 V, 70 m, in conduit on a wall with one other circuit",
   "input": {"tag": "WE-IS-1", "phase": "1ph", "voltage_v": 230, "design_current_a": 14,
             "power_factor": 0.9, "length_m": 70, "conductor": "Cu", "insulation": "PVC",
-            "method": "B1", "cores": 2, "ambient_c": 35, "grouped_circuits": 2,
+            "method": "B1", "cable": "2 x 1C", "ambient_c": 35, "grouped_circuits": 2,
             "vd_limit_pct": 3, "fault_current_ka": 1.5, "fault_time_s": 0.1,
             "device_rating_a": 16},
   "expected": {"size_mm2": 6, "governing": "voltage_drop", "iz_a": 30.83, "vd_pct": 2.91,

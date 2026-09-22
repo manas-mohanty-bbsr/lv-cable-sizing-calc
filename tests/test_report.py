@@ -80,3 +80,15 @@ def test_no_banned_characters(tmp_path, fixture_data):
 def test_governing_check_is_defined_in_the_report(tmp_path, fixture_data):
     from cablecalc.report import GOVERNING_NOTE
     assert GOVERNING_NOTE in build(tmp_path, fixture_data)
+
+
+def test_heading_names_the_cable_construction(tmp_path, fixture_data):
+    t = build(tmp_path, fixture_data)
+    assert re.search(r"Cable C1: 3C x \d+ mm2 Cu PVC", t)
+    assert "Cable C2: 3C Cu PVC, no size passes" in t
+    assert "Construction" in t
+
+
+def test_limitations_state_what_the_cable_input_does_not_cover():
+    text = " ".join(LIMITATIONS)
+    assert "parallel" in text and "methods F and G" in text and "3.5C" in text

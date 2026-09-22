@@ -3,7 +3,7 @@
   "description": "Distribution board feeder, 3-phase 400 V, 90 m, on perforated tray with four other circuits",
   "input": {"tag": "WE-IEC-2", "phase": "3ph", "voltage_v": 400, "design_current_a": 160,
             "power_factor": 0.9, "length_m": 90, "conductor": "Al", "insulation": "XLPE",
-            "method": "E", "cores": 3, "ambient_c": 45, "grouped_circuits": 5,
+            "method": "E", "cable": "3.5C", "ambient_c": 45, "grouped_circuits": 5,
             "vd_limit_pct": 4, "fault_current_ka": 15, "fault_time_s": 0.4},
   "expected": {"size_mm2": 120, "governing": "current", "iz_a": 171.61, "vd_pct": 1.90,
                "smin_mm2": 100.92},

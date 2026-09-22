@@ -31,7 +31,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         project, cables = read_input(args.input)
         data = codes.load_code(project.code)
-        results = [size_cable(c, data) for c in cables]
+        results, problems = [], []
+        for c in cables:
+            try:
+                results.append(size_cable(c, data))
+            except DataError as e:
+                problems.append(f"Row {c.row} ({c.tag}): {e}")
+        if problems:
+            raise InputError(problems)
     except (InputError, DataError) as e:
         problems = getattr(e, "problems", [str(e)])
         print("Cannot run:\n  " + "\n  ".join(problems), file=sys.stderr)

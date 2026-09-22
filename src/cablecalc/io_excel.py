@@ -9,14 +9,14 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from .codes import SUPPORTED_CODES
-from .models import CableInput, InputError, design_current_from_kw, validate_input
+from .models import CABLES, CableInput, InputError, design_current_from_kw, validate_input
 
 COLUMNS = ("tag", "phase", "voltage_v", "design_current_a", "load_kw", "power_factor",
-           "length_m", "conductor", "insulation", "method", "cores", "ambient_c",
+           "length_m", "conductor", "insulation", "method", "cable", "ambient_c",
            "grouped_circuits", "vd_limit_pct", "fault_current_ka", "fault_time_s",
            "device_rating_a", "soil_resistivity_kmw")
-_TEXT = {"tag", "phase", "conductor", "insulation", "method"}
-_INT = {"cores", "grouped_circuits"}
+_TEXT = {"tag", "phase", "conductor", "insulation", "method", "cable"}
+_INT = {"grouped_circuits"}
 _OPTIONAL = {"design_current_a", "load_kw", "device_rating_a", "soil_resistivity_kmw"}
 
 
@@ -42,7 +42,9 @@ GUIDE = (
     ("insulation", "-", "PVC or XLPE."),
     ("method", "-", "Installation method: " + ", ".join(METHODS) + ". Each is described in the "
      "Installation methods list below."),
-    ("cores", "-", "LOADED conductors: 2 for 1ph, 3 for 3ph (a 4-core 3ph cable is entered as 3)."),
+    ("cable", "-", "Cable construction: 2 x 1C or 2C (1ph); 3C (1ph or 3ph); 3 x 1C, 4 x 1C, 3.5C or "
+     "4C (3ph). n x 1C = n single-core cables. Single-core cables cannot use method E (free air "
+     "is methods F and G, not covered) or A2 (use A1). For 3.5C the size is the phase conductor."),
     ("ambient_c", "deg C", "Air temperature; for D1 and D2 the ground temperature. Between table rows, "
      "the next higher row is used."),
     ("grouped_circuits", "-", "Number of circuits in the group, including this one. 1 if alone."),
@@ -99,7 +101,8 @@ def write_template(path: Path) -> None:
     for i, col in enumerate(COLUMNS, start=1):
         cables.column_dimensions[get_column_letter(i)].width = max(10, len(col) + 2)
     for col, choices in (("phase", ("1ph", "3ph")), ("conductor", ("Cu", "Al")),
-                         ("insulation", ("PVC", "XLPE")), ("method", METHODS)):
+                         ("insulation", ("PVC", "XLPE")), ("method", METHODS),
+                         ("cable", tuple(CABLES))):
         letter = get_column_letter(COLUMNS.index(col) + 1)
         _dropdown(cables, choices, f"{letter}2:{letter}500")
 
@@ -168,7 +171,7 @@ def read_input(path: Path) -> tuple[Project, list[CableInput]]:
         row.pop("load_kw")
         if row["soil_resistivity_kmw"] is None:
             row.pop("soil_resistivity_kmw")
-        inp = CableInput(**row)
+        inp = CableInput(**row, row=r)
         try:
             validate_input(inp)
         except InputError as e:
