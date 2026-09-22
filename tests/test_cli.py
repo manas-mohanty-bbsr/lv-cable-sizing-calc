@@ -37,3 +37,35 @@ def test_engine_errors_name_every_row(tmp_path, monkeypatch, capsys):
     assert main(["run", str(filled(tmp_path, rows)), "--out", str(tmp_path / "r.docx")]) == 2
     err = capsys.readouterr().err
     assert "Row 2 (C1):" in err and "Row 3 (C2):" in err
+
+
+def test_report_open_in_word_gives_a_plain_message(tmp_path, monkeypatch, capsys):
+    import cablecalc.cli as cli
+    monkeypatch.setattr(codes, "DATA_ROOT", tmp_path / "data")
+    shutil.copytree(FIXTURE_DIR, tmp_path / "data" / "iec")
+    out = tmp_path / "r.docx"
+
+    def locked(path, *a, **k):
+        raise PermissionError(13, "Permission denied", str(path))
+    monkeypatch.setattr(cli, "write_report", locked)
+    assert main(["run", str(filled(tmp_path, [ROW])), "--out", str(out)]) == 2
+    err = capsys.readouterr().err
+    assert f"Cannot write {out}: it is open in another program" in err
+    assert "Traceback" not in err
+
+
+def test_input_open_elsewhere_gives_a_plain_message(tmp_path, monkeypatch, capsys):
+    import cablecalc.cli as cli
+    src = filled(tmp_path, [ROW])
+
+    def locked(path):
+        raise PermissionError(13, "Permission denied", str(path))
+    monkeypatch.setattr(cli, "read_input", locked)
+    assert main(["run", str(src), "--out", str(tmp_path / "r.docx")]) == 2
+    assert f"Cannot read {src}: it is open in another program" in capsys.readouterr().err
+
+
+def test_missing_input_gives_a_plain_message(tmp_path, capsys):
+    missing = tmp_path / "nope.xlsx"
+    assert main(["run", str(missing), "--out", str(tmp_path / "r.docx")]) == 2
+    assert f"Cannot find {missing}" in capsys.readouterr().err
