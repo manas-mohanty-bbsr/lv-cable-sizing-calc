@@ -22,6 +22,30 @@ GOVERNING_NOTE = ("Governing check: the check that the next smaller size fails (
                   "widest margin, if more than one does). A dash means the smallest size in the table "
                   "already passes.")
 
+# Every short form used in the check tables, in the order the checks use them.
+SYMBOLS = (
+    ("Ib", "Design current: the current the load draws (A)."),
+    ("In", "Rated current of the overload protective device (A); none if no device was entered."),
+    ("It", "Tabulated current-carrying capacity: the rating read from the code's table for this size, "
+           "conductor, insulation, installation method and number of loaded conductors, under the "
+           "table's reference conditions of 30 deg C air or 20 deg C ground, soil thermal resistivity "
+           "2.5 K.m/W and one circuit on its own (A)."),
+    ("Ca", "Correction factor for the air temperature, or for the ground temperature for buried cables."),
+    ("Cs", "Correction factor for the soil thermal resistivity (buried cables only)."),
+    ("Cg", "Group reduction factor for the other circuits run alongside."),
+    ("Iz", "Current-carrying capacity in the actual installation: It multiplied by the correction "
+           "factors (A). It must be at least Ib, and at least In where a device is entered."),
+    ("dU", "Voltage drop along the cable (V), also given as a percentage of the supply voltage."),
+    ("b", "Circuit factor: sqrt(3) for three-phase (on the line voltage), 2 for single-phase."),
+    ("L", "Route length, one way (m)."),
+    ("R, X", "Resistance and reactance of the conductor per kilometre (ohm/km)."),
+    ("cos phi, sin phi", "cos phi is the power factor of the load; sin phi = sqrt(1 - cos phi^2)."),
+    ("S", "Cross-sectional area of the conductor (mm2)."),
+    ("I", "Prospective short-circuit current at the cable (kA)."),
+    ("t", "Time for the protective device to clear that fault (s)."),
+    ("k", "Factor for the conductor and insulation, from IS 732 Table 3."),
+)
+
 LIMITATIONS = (
     "Low-voltage cables up to 1.1 kV only.",
     "Only the installation methods and sizes present in the shipped tables are supported. An ambient "
@@ -120,6 +144,9 @@ def write_report(path: Path, project: Project, results: list[SizingResult], toda
                  ("Tool version", f"cablecalc {__version__}"),
                  ("Prepared by", project.prepared_by)], widths=(LABEL_WIDTH, VALUE_WIDTH))
     doc.add_paragraph("Checked by: ____________________")
+
+    doc.add_heading("Symbols", level=1)
+    _keep_together(_table(doc, list(SYMBOLS), widths=(LABEL_WIDTH, VALUE_WIDTH)))
 
     for res in results:
         doc.add_heading(res.heading, level=1)

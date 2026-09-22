@@ -92,3 +92,13 @@ def test_heading_names_the_cable_construction(tmp_path, fixture_data):
 def test_limitations_state_what_the_cable_input_does_not_cover():
     text = " ".join(LIMITATIONS)
     assert "parallel" in text and "methods F and G" in text and "3.5C" in text
+
+
+def test_symbols_explained_before_the_first_cable(tmp_path, fixture_data):
+    from cablecalc.report import SYMBOLS
+    t = build(tmp_path, fixture_data)
+    assert t.index("Symbols") < t.index("Cable C1")
+    for symbol, meaning in SYMBOLS:
+        assert symbol in t and meaning in t
+    names = {s for s, _ in SYMBOLS}
+    assert {"Ib", "In", "It", "Ca", "Cs", "Cg", "Iz", "dU", "b", "L", "R, X", "S", "I", "t", "k"} <= names
