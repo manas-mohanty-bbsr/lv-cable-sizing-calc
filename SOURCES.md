@@ -66,8 +66,14 @@ that clause.
 ## What version 1 covers
 
 - Conductors: copper and aluminium. Insulation: PVC (70 deg C) and XLPE (90 deg C).
-- `cores` is the number of **loaded** conductors: 2 (single-phase) or 3 (three-phase). A four-core cable on a
-  three-phase circuit is entered as 3.
+- The input names the cable construction (`2 x 1C`, `3 x 1C`, `4 x 1C`, `2C`, `3C`, `3.5C`, `4C`). The
+  tables' `cores` column is the number of **loaded** conductors, and the tool derives it from the phase:
+  2 for single-phase, 3 for three-phase. IS 732 clause 5.2.6.6.1: where polyphase currents are balanced
+  the neutral need not be taken into consideration, and a four-core cable is given the same rating as a
+  three-core cable of the same size; so 3.5C and 4C use the three-loaded-conductor column. Harmonic
+  neutral current (Annex V, Table 45) is not covered.
+- Single-core cables are refused in method E (single-core in free air is methods F and G, IS 732 Table 19
+  items 31 to 33) and in method A2 (multi-core only, Table 19 item 2; single-core is item 1, method A1).
 - Installation methods: A1, A2, B1, B2, C, E (multi-core), D1 (multi-core cables in ducts in the ground) and
   D2 (direct in the ground).
 - Sizes: copper 1.5 to 300 mm2; aluminium 2.5 to 300 mm2. For D2 in aluminium the standard gives no rating

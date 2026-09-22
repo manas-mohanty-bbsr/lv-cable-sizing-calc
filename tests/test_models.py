@@ -6,7 +6,7 @@ from cablecalc.models import (CableInput, CheckResult, InputError,
 def make(**overrides):
     base = dict(tag="C1", phase="3ph", voltage_v=400, design_current_a=30,
                 power_factor=0.8, length_m=50, conductor="Cu", insulation="PVC",
-                method="C", cores=3, ambient_c=40, grouped_circuits=1,
+                method="C", cable="3C", ambient_c=40, grouped_circuits=1,
                 vd_limit_pct=5, fault_current_ka=2, fault_time_s=0.1)
     base.update(overrides)
     return CableInput(**base)
@@ -64,3 +64,47 @@ def test_soil_resistivity_defaults_to_the_table_reference():
 def test_soil_resistivity_must_be_positive():
     with pytest.raises(InputError, match="soil_resistivity_kmw"):
         validate_input(make(soil_resistivity_kmw=0))
+
+
+@pytest.mark.parametrize("phase,expected", [("1ph", 2), ("3ph", 3)])
+def test_loaded_conductors_follow_phase(phase, expected):
+    assert make(phase=phase).loaded_conductors == expected
+
+
+@pytest.mark.parametrize("cable,phase", [
+    ("2 x 1C", "1ph"), ("2C", "1ph"), ("3C", "1ph"), ("3C", "3ph"),
+    ("3 x 1C", "3ph"), ("4 x 1C", "3ph"), ("3.5C", "3ph"), ("4C", "3ph")])
+def test_every_cable_accepted_on_its_phase(cable, phase):
+    validate_input(make(cable=cable, phase=phase, method="C"))
+
+
+def test_unknown_cable_named():
+    with pytest.raises(InputError) as exc:
+        validate_input(make(cable="1"))
+    assert any("field 'cable' must be one of" in p for p in exc.value.problems)
+
+
+@pytest.mark.parametrize("cable,phase,needs", [
+    ("4C", "1ph", "3ph"), ("3.5C", "1ph", "3ph"), ("3 x 1C", "1ph", "3ph"),
+    ("2C", "3ph", "1ph"), ("2 x 1C", "3ph", "1ph")])
+def test_cable_must_match_phase(cable, phase, needs):
+    with pytest.raises(InputError) as exc:
+        validate_input(make(cable=cable, phase=phase))
+    assert f"C1: field 'cable' '{cable}' needs phase {needs}" in exc.value.problems
+
+
+def test_single_core_in_free_air_refused():
+    with pytest.raises(InputError) as exc:
+        validate_input(make(cable="3 x 1C", method="E"))
+    assert any("methods F and G" in p for p in exc.value.problems)
+
+
+def test_single_core_in_a2_points_to_a1():
+    with pytest.raises(InputError) as exc:
+        validate_input(make(cable="4 x 1C", method="A2"))
+    assert any("use A1" in p for p in exc.value.problems)
+
+
+def test_multi_core_allowed_in_e_and_a2():
+    validate_input(make(cable="3.5C", method="E"))
+    validate_input(make(cable="4C", method="A2"))

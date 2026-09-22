@@ -28,3 +28,12 @@ def test_run_reports_unsourced_code(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(codes, "DATA_ROOT", tmp_path / "empty")
     assert main(["run", str(filled(tmp_path, [ROW])), "--out", str(tmp_path / "r.docx")]) == 2
     assert "not shipped yet" in capsys.readouterr().err
+
+
+def test_engine_errors_name_every_row(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(codes, "DATA_ROOT", tmp_path / "data")
+    shutil.copytree(FIXTURE_DIR, tmp_path / "data" / "iec")
+    rows = [dict(ROW, method="B1"), dict(ROW, tag="C2", method="A1")]  # not in the fixture tables
+    assert main(["run", str(filled(tmp_path, rows)), "--out", str(tmp_path / "r.docx")]) == 2
+    err = capsys.readouterr().err
+    assert "Row 2 (C1):" in err and "Row 3 (C2):" in err

@@ -6,7 +6,7 @@ from cablecalc.models import InputError
 
 ROW = {"tag": "C1", "phase": "3ph", "voltage_v": 400, "design_current_a": 30, "load_kw": None,
        "power_factor": 0.8, "length_m": 50, "conductor": "Cu", "insulation": "PVC",
-       "method": "C", "cores": 3, "ambient_c": 40, "grouped_circuits": 1,
+       "method": "C", "cable": "3C", "ambient_c": 40, "grouped_circuits": 1,
        "vd_limit_pct": 5, "fault_current_ka": 2, "fault_time_s": 0.1, "device_rating_a": None}
 
 
@@ -84,3 +84,16 @@ def test_guide_describes_every_method(tmp_path):
     rows = list(load_workbook(p)["Guide"].iter_rows(min_row=len(COLUMNS) + 4, values_only=True))
     assert tuple(r[0] for r in rows) == METHODS == tuple(m[0] for m in METHOD_GUIDE)
     assert all(r[2] and "Grouping:" in r[2] for r in rows)
+
+
+def test_cable_dropdown_offers_every_construction(tmp_path):
+    p = tmp_path / "t.xlsx"
+    write_template(p)
+    ws = load_workbook(p)["Cables"]
+    formulas = [dv.formula1 for dv in ws.data_validations.dataValidation]
+    assert '"2 x 1C,3 x 1C,4 x 1C,2C,3C,3.5C,4C"' in formulas
+
+
+def test_reader_keeps_the_sheet_row(tmp_path):
+    _, cables = read_input(filled(tmp_path, [ROW, dict(ROW, tag="C2")]))
+    assert [c.row for c in cables] == [2, 3]

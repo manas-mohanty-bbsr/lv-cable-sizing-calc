@@ -11,7 +11,7 @@ BURIED_METHODS = ("D1", "D2")
 
 
 def check_current(inp: CableInput, size_mm2: float, data: CodeData) -> CheckResult:
-    it, s1 = data.ampacity(inp.conductor, inp.insulation, inp.method, inp.cores, size_mm2)
+    it, s1 = data.ampacity(inp.conductor, inp.insulation, inp.method, inp.loaded_conductors, size_mm2)
     required = max(inp.design_current_a, inp.device_rating_a or 0)
     device = f"{inp.device_rating_a:g} A" if inp.device_rating_a else "none"
     loads = f"Ib = {inp.design_current_a:.2f} A, In = {device}, "
@@ -70,7 +70,8 @@ def governing_check(smaller: tuple[CheckResult, ...]) -> str:
 
 def size_cable(inp: CableInput, data: CodeData) -> SizingResult:
     validate_input(inp)
-    sizes = data.sizes(inp.conductor, inp.insulation, inp.method, inp.cores)
+    who = dict(cable=inp.cable, material=f"{inp.conductor} {inp.insulation}")
+    sizes = data.sizes(inp.conductor, inp.insulation, inp.method, inp.loaded_conductors)
     checks: tuple[CheckResult, ...] = ()
     for size in sizes:
         smaller = checks
@@ -80,9 +81,10 @@ def size_cable(inp: CableInput, data: CodeData) -> SizingResult:
         if all(c.passed for c in checks):
             if not smaller:
                 return SizingResult(inp.tag, data.code, size, checks, None, True,
-                                    f"{size:g} mm2 passes all checks; it is the smallest size in the table")
+                                    f"{size:g} mm2 passes all checks; it is the smallest size in the table",
+                                    **who)
             return SizingResult(inp.tag, data.code, size, checks, governing_check(smaller),
-                                True, f"{size:g} mm2 passes all checks")
+                                True, f"{size:g} mm2 passes all checks", **who)
     return SizingResult(inp.tag, data.code, None, checks, None, False,
                         f"No size passes. Results shown are for the largest size in the table "
-                        f"({sizes[-1]:g} mm2).")
+                        f"({sizes[-1]:g} mm2).", **who)

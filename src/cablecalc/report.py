@@ -42,6 +42,10 @@ LIMITATIONS = (
     "The fault current and fault time entered must be the worst pair for a fault anywhere along the "
     "cable (IS 732 clause 4.4.5.5.2). A fault at the far end is smaller but may take longer to clear, so "
     "it can be the more onerous case. The tool checks only the pair entered.",
+    "Each cable is one run per phase. Cables in parallel are not covered, and neither are single-core "
+    "cables in free air (methods F and G).",
+    "For a 3.5C cable the size given is that of the phase conductors; the reduced neutral follows the "
+    "cable standard.",
     "Harmonic derating is not calculated.",
     "This is a sample tool, not a design service. Results must be checked by a qualified engineer.",
 )
@@ -118,7 +122,7 @@ def write_report(path: Path, project: Project, results: list[SizingResult], toda
     doc.add_paragraph("Checked by: ____________________")
 
     for res in results:
-        doc.add_heading(f"Cable {res.tag}", level=1)
+        doc.add_heading(res.heading, level=1)
         doc.add_paragraph(res.message).paragraph_format.keep_with_next = True
         for c in res.checks:
             doc.add_heading(CHECK_LABELS[c.name], level=2)
@@ -133,8 +137,8 @@ def write_report(path: Path, project: Project, results: list[SizingResult], toda
             _keep_together(t)
 
     doc.add_heading("Summary", level=1)
-    summary = _table(doc, [("Cable", "Size (mm2)", "Governing check", "Result")] + [
-        (r.tag, f"{r.size_mm2:g}" if r.size_mm2 else "-",
+    summary = _table(doc, [("Cable", "Construction", "Size (mm2)", "Governing check", "Result")] + [
+        (r.tag, f"{r.cable} {r.material}", f"{r.size_mm2:g}" if r.size_mm2 else "-",
          CHECK_LABELS[r.governing] if r.governing else "-",
          "PASS" if r.passed else "FAIL") for r in results])
     _keep_together(summary)
