@@ -9,6 +9,28 @@ check that governs the choice, and prints every formula, value and table referen
 engineer can follow the working line by line. It is written for electrical designers and reviewers who
 want a sizing sheet they can audit rather than a number they have to trust.
 
+## See what it produces
+
+**[Open the sample calculation report (PDF)](samples/sample-report.pdf)**, made from
+[this input workbook](samples/sample-input.xlsx) of five invented cables.
+
+The report opens with the project details and a table explaining every symbol it uses. Each cable then
+gets its size, the three checks with formula, values, required and actual figures, and the IS 732 table
+behind every number, followed by a summary and the limitations. The sample includes a cable governed by
+each of the three checks, and one for which no size passes.
+
+## Why the numbers can be trusted
+
+- **Checked against hand calculations.** Four worked examples, two for each code, were sized by hand from
+  IS 732:2019 before the tool was run. The tool must reproduce every figure within 0.5 %, and the owner
+  has run all four himself. See [`VERIFICATION.md`](VERIFICATION.md).
+- **Every value is traceable.** Each number in the shipped tables names the IS 732 table or clause it
+  came from, and [`SOURCES.md`](SOURCES.md) records how each table was read and cross-checked.
+- **Tested on every change.** The full test suite runs automatically whenever the code changes (the badge
+  above).
+- **No number comes from AI.** The code was written with AI assistance, but every value in a report is
+  computed by deterministic, tested code.
+
 ## Authorship
 
 Engineering method, choice of standard and verification by Manas Mohanty. Code written with AI
@@ -18,45 +40,6 @@ model.
 For 37 years I designed, tendered and approved electrical and MEP systems for a state infrastructure
 corporation in India — 125+ industrial estates, 33 kV down to 433 V, and thousands of drawing sets across
 my desk. I retired as General Manager (Electrical).
-
-## Sample output
-
-- Input: [`samples/sample-input.xlsx`](samples/sample-input.xlsx) (five invented cables)
-- Report: [`samples/sample-report.pdf`](samples/sample-report.pdf)
-
-The sample includes a cable governed by each of the three checks, and one for which no size passes.
-
-## How to run it
-
-Needs Python 3.11 or later.
-
-```
-git clone https://github.com/manas-mohanty-bbsr/lv-cable-sizing-calc.git
-cd lv-cable-sizing-calc
-pip install .
-```
-
-1. Write a blank input workbook:
-   ```
-   cablecalc template --out my-cables.xlsx
-   ```
-2. Open it in Excel. On the **Project** sheet, fill in the project name, the code (`IEC` or `IS`) and your
-   name. On the **Cables** sheet, add one row per cable. The **Guide** sheet explains every column, its
-   unit and the allowed values; the text columns have drop-down lists.
-3. Run it:
-   ```
-   cablecalc run my-cables.xlsx --out my-report.docx
-   ```
-   If anything in the workbook is missing or out of range, nothing is calculated and every problem is
-   listed by row and column.
-
-## How it is verified
-
-- Four worked examples, two for each code, were sized by hand from IS 732:2019 before the tool was run.
-  The tool must reproduce each hand calculation within 0.5 %. See [`VERIFICATION.md`](VERIFICATION.md).
-- Every value in the shipped tables names its source, and [`SOURCES.md`](SOURCES.md) records where each
-  table was read and how it was cross-checked.
-- The full test suite runs on every push (badge above).
 
 ## Limitations
 
@@ -84,6 +67,53 @@ pip install .
 This is a sample, not a design service. Results must be checked by a qualified engineer.
 
 The standards themselves are copyright documents and are not included in this repository.
+
+## For engineers who want to run it
+
+You need Python 3.11 or later and Microsoft Excel and Word (or programs that open `.xlsx` and `.docx`).
+
+### On Windows, step by step
+
+1. **Install Python** from [python.org/downloads](https://www.python.org/downloads/) if you do not
+   already have it. If the installer offers **Add python.exe to PATH**, tick it.
+2. **Download this repository**: on this page, click the green **Code** button, then **Download ZIP**.
+   Unzip it anywhere, for example into `C:\cablecalc`. Windows may create a folder inside a folder; the
+   one you want is the folder that contains this `README.md`.
+3. **Open PowerShell in that folder**: in File Explorer, open the folder, click the address bar, type
+   `powershell` and press Enter.
+4. **Install the tool** into a private environment inside the folder. Paste these two lines, one at a
+   time:
+   ```
+   python -m venv .venv
+   .venv\Scripts\pip install .
+   ```
+5. **Make a blank input workbook**:
+   ```
+   .venv\Scripts\cablecalc template --out my-cables.xlsx
+   ```
+6. **Fill it in** in Excel. On the **Project** sheet, give the project name, the code (`IEC` or `IS`) and
+   your name. On the **Cables** sheet, add one row per cable. The **Guide** sheet explains every column,
+   its unit and the allowed values, and the text columns have drop-down lists. Save it and close Excel.
+7. **Run it**:
+   ```
+   .venv\Scripts\cablecalc run my-cables.xlsx --out my-report.docx
+   ```
+   Then open `my-report.docx`. If anything in the workbook is missing or out of range, nothing is
+   calculated and every problem is listed by row and column. If the report from an earlier run is still
+   open in Word, close it first, or give a different file name after `--out`.
+
+Next time, open PowerShell in the same folder and repeat steps 5 to 7.
+
+### With git, on any system
+
+```
+git clone https://github.com/manas-mohanty-bbsr/lv-cable-sizing-calc.git
+cd lv-cable-sizing-calc
+python -m venv .venv
+```
+
+Then install with `.venv/bin/pip install .` (macOS or Linux) or `.venv\Scripts\pip install .` (Windows),
+and run `cablecalc template` and `cablecalc run` from the same `.venv` folder as in steps 5 to 7 above.
 
 ## Licence
 
