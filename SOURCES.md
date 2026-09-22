@@ -37,6 +37,15 @@ The IEC numbers B.52.3, B.52.10, B.52.11 and B.52.16 were not seen in any docume
 numbering, which holds for every table where both numbers were seen (IS Table *n* = IEC Table
 B.52.(*n* - 19)). Their source strings say so.
 
+**The installation method codes are the same in both standards.** IS 732 Table 19 was compared item by
+item with IEC Table A.52.3 as reproduced in the summary (items 1 to 72): every item carries the same
+description and the same reference method (A1, A2, B1, B2, C, D1, D2, E, F or G). IS Table 20 = IEC
+Table B.52.1, and the ampacity tables of both head their columns with the same codes. The short method
+descriptions in the template's Guide sheet are taken from IS 732 Tables 19 and 20 and clause S-6.1.
+One difference in print only: IS Table 19 goes from item 71 to item 73 and leaves out item 72
+(sheathed cable direct in the ground, without added mechanical protection), which IEC Table A.52.3 lists
+as D2. IS Table 18 still refers to item 72, and both items use D2, so no value changes.
+
 A second, independent extraction of the three-loaded-conductor values (methods C, D1, D2 and E, copper
 and aluminium, 248 cells) made earlier from the same page images agreed with this one in every cell.
 
