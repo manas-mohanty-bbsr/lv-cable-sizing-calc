@@ -28,6 +28,8 @@ def main(argv: list[str] | None = None) -> int:
         write_template(args.out)
         print(f"Template written: {args.out}")
         return 0
+    if not args.input.exists():
+        return _fail(f"Cannot find {args.input}. Check the path and file name.")
     try:
         project, cables = read_input(args.input)
         data = codes.load_code(project.code)
@@ -39,13 +41,25 @@ def main(argv: list[str] | None = None) -> int:
                 problems.append(f"Row {c.row} ({c.tag}): {e}")
         if problems:
             raise InputError(problems)
+    except PermissionError:
+        return _fail(f"Cannot read {args.input}: it is open in another program (probably Excel). "
+                     "Close it and run again.")
     except (InputError, DataError) as e:
         problems = getattr(e, "problems", [str(e)])
         print("Cannot run:\n  " + "\n  ".join(problems), file=sys.stderr)
         return 2
-    write_report(args.out, project, results, today=date.today().isoformat())
+    try:
+        write_report(args.out, project, results, today=date.today().isoformat())
+    except PermissionError:
+        return _fail(f"Cannot write {args.out}: it is open in another program (probably Word). "
+                     "Close it and run again, or give a different --out file name.")
     print(f"Report written: {args.out} ({len(results)} cables)")
     return 0
+
+
+def _fail(message: str) -> int:
+    print(message, file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":
